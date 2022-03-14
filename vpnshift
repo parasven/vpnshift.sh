@@ -209,8 +209,8 @@ main() {
 	# Set up DNS inside the new namespace
 	printf > "${namespace_dir}/resolv.conf" \
 		"nameserver %s\nnameserver %s\n" \
-		"108.62.19.131" \
-		"104.238.194.235"
+		"8.8.8.8" \
+		"8.8.4.4"
 
 	# drop in a shell to debug namespace connectivity ... the exit trap will catch exit from this and clean up
 	if [[ "$_debug" == 1 ]]; then
@@ -244,7 +244,12 @@ main() {
 	must nsdo ip \
 		route delete default via "10.10.10.10" dev "${veth_vpn}"
 
-	nsdo sudo -u "${user}" "${cmd}" "$@"
+	echo "${user}"
+	echo "$(eval echo ~${user})"
+
+#	nsdo sudo -u "${user}" "${cmd}" "$@"
+	nsdo sudo HOME="$(eval echo ~${user})" PULSE_SERVER=/run/user/$(id -u ${user})/pulse/native PULSE_COOKIE=$(eval echo ~${user})/.config/pulse/cookie XDG_RUNTIME_DIR="/run/user/$(id -u ${user})" -u "${user}" "${cmd}" "$@"
+	echo "$HOME" 
 }
 
 if [[ $# == 0 ]]; then
